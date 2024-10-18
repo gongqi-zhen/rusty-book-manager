@@ -1,5 +1,5 @@
 use anyhow::Result;
-use axum::{http::StatusCode, routing::get, Router};
+use axum::{extract::State, http::StatusCode, routing::get, Router};
 use sqlx::{postgres::PgConnectOptions, PgPool};
 use std::net::{Ipv4Addr, SocketAddr};
 use tokio::net::TcpListener;
@@ -20,7 +20,9 @@ async fn main() -> Result<()> {
 
     let conn_pool = connect_database_with(database_cfg);
 
-    let app = Router::new().route("/health", get(health_check));
+    let app = Router::new()
+        .route("/health", get(health_check))
+        .with_state(conn_pool);
     let addr = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 8080);
     let listener = TcpListener::bind(addr).await?;
 
