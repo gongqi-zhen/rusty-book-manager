@@ -1,11 +1,14 @@
-use adapter::database::connect_database_with;
+use adapter::{database::connect_database_with, redis::RedisClient};
 use anyhow::{Context, Result};
-use api::route::{book::build_book_routers, health::build_health_check_routers};
+use api::route::{auth, book::build_book_routers, health::build_health_check_routers};
 use axum::Router;
 use registry::AppRegistry;
 use shared::config::AppConfig;
 use shared::env::{which, Environment};
-use std::net::{Ipv4Addr, SocketAddr};
+use std::{
+    net::{Ipv4Addr, SocketAddr},
+    sync::Arc,
+};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tower_http::LatencyUnit;
@@ -44,12 +47,14 @@ fn init_logger() -> Result<()> {
 async fn bootstrap() -> Result<()> {
     let app_config = AppConfig::new()?;
     let pool = connect_database_with(&app_config.database);
+    let kv = Arc::new(RedisClient::new(&app_config.redis)?);
 
-    let registry = AppRegistry::new(pool);
+    let registry = AppRegistry::new(pool, kv, app_config);
 
     let app = Router::new()
         .merge(build_health_check_routers())
         .merge(build_book_routers())
+        .merge(auth::routes())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
