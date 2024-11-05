@@ -10,9 +10,9 @@ use std::{
     sync::Arc,
 };
 use tokio::net::TcpListener;
+use tower_http::cors::{self, CorsLayer};
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tower_http::LatencyUnit;
-use tower_http::cors::{self, CorsLayer};
 use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -87,12 +87,7 @@ async fn bootstrap() -> Result<()> {
 
 fn cors() -> CorsLayer {
     CorsLayer::new()
-    .allow_headers(cors::Any)
-    .allow_methods([
-        Method::GET,
-        Method::POST,
-        Method::PUT,
-        Method::DELETE,
-    ])
-    .allow_origin(cors::Any)
+        .allow_headers(cors::Any)
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_origin(cors::Any)
 }
