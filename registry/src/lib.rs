@@ -48,10 +48,30 @@ impl AppRegistryImpl {
             checkout_repository,
         }
     }
+
+    pub fn health_check_repository(&self) -> Arc<dyn HealthCheckRepository> {
+        self.health_check_repository.clone()
+    }
+
+    pub fn book_repository(&self) -> Arc<dyn BookRepository> {
+        self.book_repository.clone()
+    }
+
+    pub fn auth_repository(&self) -> Arc<dyn AuthRepository> {
+        self.auth_repository.clone()
+    }
+
+    pub fn user_repository(&self) -> Arc<dyn UserRepository> {
+        self.user_repository.clone()
+    }
+
+    pub fn checkout_repository(&self) -> Arc<dyn CheckoutRepository> {
+        self.checkout_repository.clone()
+    }
 }
 
 #[mockall::automock]
-pub trait AppRegistryImplExt {
+pub trait AppRegistryExt {
     fn health_check_repository(&self) -> Arc<dyn HealthCheckRepository>;
     fn book_repository(&self) -> Arc<dyn BookRepository>;
     fn auth_repository(&self) -> Arc<dyn AuthRepository>;
@@ -59,7 +79,7 @@ pub trait AppRegistryImplExt {
     fn user_repository(&self) -> Arc<dyn UserRepository>;
 }
 
-impl AppRegistryImplExt for AppRegistryImpl {
+impl AppRegistryExt for AppRegistryImpl {
     fn health_check_repository(&self) -> Arc<dyn HealthCheckRepository> {
         self.health_check_repository.clone()
     }
@@ -81,4 +101,4 @@ impl AppRegistryImplExt for AppRegistryImpl {
     }
 }
 
-pub type AppRegistry = Arc<dyn AppRegistryImplExt + Send + Sync + 'static>;
+pub type AppRegistry = Arc<dyn AppRegistryExt + Send + Sync + 'static>;
