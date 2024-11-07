@@ -19,6 +19,13 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
+#[cfg(debug_assertions)]
+use api::openapi::ApiDoc;
+#[cfg(debug_assertions)]
+use utoipa::OpenApi;
+#[cfg(debug_assertions)]
+use utoipa_redoc::{Redoc, Servable};
+
 #[tokio::main]
 async fn main() -> Result<()> {
     init_logger()?;
@@ -71,9 +78,11 @@ async fn bootstrap() -> Result<()> {
 
     let registry = Arc::new(AppRegistryImpl::new(pool, kv, app_config));
 
-    let app = Router::new()
-        .merge(v1::routes())
-        .merge(auth::routes())
+    let router = Router::new().merge(v1::routes()).merge(auth::routes());
+    #[cfg(debug_assertions)]
+    let router = router.merge(Redoc::with_url("/docs", ApiDoc::openapi()));
+
+    let app = router
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
