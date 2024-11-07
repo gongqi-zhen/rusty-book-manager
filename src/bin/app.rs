@@ -13,7 +13,7 @@ use tokio::net::TcpListener;
 use tower_http::cors::{self, CorsLayer};
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tower_http::LatencyUnit;
-use tracing::Level;
+use tracing::{subscriber, Level};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
@@ -36,6 +36,9 @@ fn init_logger() -> Result<()> {
         .with_file(true)
         .with_line_number(true)
         .with_target(false);
+
+    #[cfg(not(debug_assertions))]
+    let subscriber = subscriber.json();
 
     tracing_subscriber::registry()
         .with(subscriber)
